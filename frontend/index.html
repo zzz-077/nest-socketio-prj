@@ -33,7 +33,46 @@
         </div>
       </div>
     </div>
+    <div class="callRoom_container">
+      <div class="callRoom_box">
+        <div class="videoInputs">
+          <div class="video_box">
+            <div class="user_Img">
+              <img src="assets/L.png" alt="" />
+            </div>
+          </div>
+          <div class="video_box">
+            <div class="user_Img">
+              <img src="assets/P.png" alt="" />
+            </div>
+          </div>
+        </div>
 
+        <div class="tools_box">
+          <div class="videoBtn btns_boxes">
+            <button onclick="CameraBtnClick(true)" class="videoBtns active">
+              <i class="fa-solid fa-video"></i>
+            </button>
+            <button onclick="CameraBtnClick(false)" class="videoBtns inactive">
+              <i class="fa-solid fa-video-slash"></i>
+            </button>
+          </div>
+          <div class="microfonBtn btns_boxes">
+            <button onclick="MicroBtnClick(true)" class="microBtns active">
+              <i class="fa-solid fa-microphone"></i>
+            </button>
+            <button onclick="MicroBtnClick(false)" class="microBtns inactive">
+              <i class="fa-solid fa-microphone-slash"></i>
+            </button>
+          </div>
+          <div class="leaveCallBtn btns_boxes">
+            <button onclick="LeaveBtnClick()">
+              <i class="fa-solid fa-phone-slash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
     <script src="app.js" defer></script>
   </body>
 </html>

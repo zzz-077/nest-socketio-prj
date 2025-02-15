@@ -1,3 +1,6 @@
+/*===================================*/
+/*=========SOCKET FUNCTIONS==========*/
+/*===================================*/
 const socket = io("http://localhost:3335");
 
 function sendMessage() {
@@ -7,19 +10,31 @@ function sendMessage() {
 socket.on("receive_message", (data) => {
   console.log("Received message from server:", data);
 });
+/*===================================*/
+/*=========COMMON VARIABLES==========*/
+/*===================================*/
+
+let mainContainer = document.querySelector(".main_container");
+let callRoomContainer = document.querySelector(".callRoom_container");
 
 /*===================================*/
 /*==========MAIN FUNCTIONS===========*/
 /*===================================*/
+
+//joins user in room
 function StartCallBtn() {
+  socket.emit("joinRoom");
+  mainContainer.classList.add("disable");
+  callRoomContainer.classList.add("enable");
   let startAudio = new Audio();
   startAudio.src = "assets/sounds/discord-join.mp3";
   startAudio.load();
   startAudio.play();
-  setTimeout(() => {
-    window.location.href = "callRoom.html";
-  }, 420);
 }
+//gets callback from back about joining room
+socket.on("joinedRoom", (data) => {
+  console.log(data);
+});
 
 /*===================================*/
 /*========CALLROOM FUNCTIONS=========*/
@@ -72,7 +87,6 @@ function LeaveBtnClick() {
   leaveCallAudio.src = "assets/sounds/discord-leave.mp3";
   leaveCallAudio.load();
   leaveCallAudio.play();
-  setTimeout(() => {
-    window.location.href = "index.html";
-  }, 420);
+  mainContainer.classList.remove("disable");
+  callRoomContainer.classList.remove("enable");
 }
