@@ -1,22 +1,29 @@
 /*===================================*/
 /*=========SOCKET FUNCTIONS==========*/
 /*===================================*/
-const socket = io("http://localhost:3335");
+socket = io("http://localhost:3335");
 
-function sendMessage() {
-  socket.emit("send_message", "message from user!");
-}
-
-socket.on("receive_message", (data) => {
-  console.log("Received message from server:", data);
+//gets callback from back about joining room
+socket.on("joinedRoom", (data) => {
+  JoinedRoomId = data.JoinedRoom;
+  console.log(data);
+  createUserinterface(data.clientId);
 });
+//gets callback from back about leaving room
+socket.on("leavedRoom", (data) => {
+  // JoinedRoomId = "";
+  console.log(data);
+  deleteUserinterface(data.clientId);
+});
+
 /*===================================*/
 /*=========COMMON VARIABLES==========*/
 /*===================================*/
-
+JoinedRoomId = "";
 let mainContainer = document.querySelector(".main_container");
 let callRoomContainer = document.querySelector(".callRoom_container");
-
+let videoInputs = document.querySelector(".videoInputs");
+let newUserInterface = document.createElement("div");
 /*===================================*/
 /*==========MAIN FUNCTIONS===========*/
 /*===================================*/
@@ -31,10 +38,6 @@ function StartCallBtn() {
   startAudio.load();
   startAudio.play();
 }
-//gets callback from back about joining room
-socket.on("joinedRoom", (data) => {
-  console.log(data);
-});
 
 /*===================================*/
 /*========CALLROOM FUNCTIONS=========*/
@@ -89,4 +92,28 @@ function LeaveBtnClick() {
   leaveCallAudio.play();
   mainContainer.classList.remove("disable");
   callRoomContainer.classList.remove("enable");
+  if (JoinedRoomId) {
+    console.log("Leaving room:", JoinedRoomId);
+    socket.emit("leaveRoom", JoinedRoomId);
+  } else {
+    console.log("No room joined yet");
+  }
+}
+function createUserinterface(clientId) {
+  // let userImg = document.createElement("img");
+  // userImg.src = "./assets/L.png";
+  newUserInterface.classList.add("video_box");
+  newUserInterface.id = clientId;
+  newUserInterface.innerHTML = `
+            <div class="user_Img">
+              <img src="assets/L.png" alt="" />
+            </div>`;
+  videoInputs.appendChild(newUserInterface);
+}
+function deleteUserinterface(clientId) {
+  let child = videoInputs.firstChild;
+  while (child) {
+    log;
+    if (child.id === clientId) videoInputs.removeChild(child);
+  }
 }
