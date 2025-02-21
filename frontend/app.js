@@ -7,15 +7,28 @@ socket = io("http://localhost:3335");
 socket.on("joinedRoom", (data) => {
   JoinedRoomId = data.JoinedRoom;
   console.log(data);
+  if (!clientInRoom.has(data.room)) {
+    clientInRoom.set(data.room, new Set());
+  }
+  clientInRoom.get(data.room).add(data.clientId);
+  // console.log(clientInRoom);
   createUserinterface(data.clientId);
 });
 //gets callback from back about leaving room
 socket.on("leavedRoom", (data) => {
   // JoinedRoomId = "";
   console.log(data);
+  if (clientInRoom.has(data.roomId)) {
+    let clients = clientInRoom.get(data.roomId);
+    clients.delete(data.clientId); // Remove only this user
+
+    if (clients.size === 0) {
+      clientInRoom.delete(roomId); // Delete the room if it's empty
+    }
+  }
+
   deleteUserinterface(data.clientId);
 });
-
 /*===================================*/
 /*=========COMMON VARIABLES==========*/
 /*===================================*/
@@ -24,10 +37,10 @@ let mainContainer = document.querySelector(".main_container");
 let callRoomContainer = document.querySelector(".callRoom_container");
 let videoInputs = document.querySelector(".videoInputs");
 let newUserInterface = document.createElement("div");
+let clientInRoom = new Map();
 /*===================================*/
 /*==========MAIN FUNCTIONS===========*/
 /*===================================*/
-
 //joins user in room
 function StartCallBtn() {
   socket.emit("joinRoom");
@@ -38,7 +51,6 @@ function StartCallBtn() {
   startAudio.load();
   startAudio.play();
 }
-
 /*===================================*/
 /*========CALLROOM FUNCTIONS=========*/
 /*===================================*/
@@ -111,9 +123,6 @@ function createUserinterface(clientId) {
   videoInputs.appendChild(newUserInterface);
 }
 function deleteUserinterface(clientId) {
-  let child = videoInputs.firstChild;
-  while (child) {
-    log;
-    if (child.id === clientId) videoInputs.removeChild(child);
-  }
+  // let child = videoInputs.firstChild;
+  // console.log(child);
 }

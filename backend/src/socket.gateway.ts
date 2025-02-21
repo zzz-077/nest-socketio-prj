@@ -43,7 +43,11 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
           // console.log('joined in already created room');
           checkIfFreeRoomExists = true;
           client.join(room);
-          client.emit('joinedRoom', { JoinedRoom: room, clientId: client.id });
+          this.server.to(room).emit('joinedRoom', {
+            roomMembers: [...ids],
+            JoinedRoom: room,
+            clientId: client.id,
+          });
           break;
         }
       }
@@ -55,25 +59,31 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // console.log('=========2==========');
       // console.log('joined in new created room');
       client.join(randomRoomId);
-      client.emit('joinedRoom', {
+      this.server.to(randomRoomId).emit('joinedRoom', {
+        roomMembers: [client.id],
         JoinedRoom: randomRoomId,
         clientId: client.id,
       });
     }
 
     console.log('=========4==========');
-    console.log(checkRooms);
+    // console.log(checkRooms);
   }
   //leave room
   @SubscribeMessage('leaveRoom')
   leaveRoom(@ConnectedSocket() client: Socket, @Body() roomId: string) {
     console.log('=====================================');
-    console.log(roomId);
-
-    client.leave(roomId);
-    client.emit('leavedRoom', { leavedRoom: roomId, clientId: client.id });
     let checkRooms = this.server.sockets.adapter.rooms;
-    console.log(checkRooms);
+    client.leave(roomId);
+    let getUsersFromRoom = checkRooms.get(roomId);
+    let usersInRoom = getUsersFromRoom ? Array.from(getUsersFromRoom) : [];
+    console.log(usersInRoom);
+    this.server.to(roomId).emit('leavedRoom', {
+      roomMembers: usersInRoom,
+      leavedRoom: roomId,
+      clientId: client.id,
+    });
+    // console.log(checkRooms);
   }
   //connect clientSocket
   handleConnection(client: Socket) {
