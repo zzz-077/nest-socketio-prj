@@ -6,13 +6,13 @@ socket = io("http://localhost:3335");
 //gets callback from back about joining room
 socket.on("joinedRoom", (data) => {
   JoinedRoomId = data.JoinedRoom;
-  // console.log(data);
+  console.log(data);
   createUserinterface(data.roomMembers);
 });
 //gets callback from back about leaving room
 socket.on("leavedRoom", (data) => {
-  // console.log(data);
-  deleteUserinterface(data.clientId, data.roomMembers);
+  console.log(data);
+  deleteUserinterface(data.roomMembers);
 });
 /*===================================*/
 /*=========COMMON VARIABLES==========*/
@@ -119,20 +119,18 @@ function LeaveBtnClick() {
   callRoomContainer.classList.remove("enable");
 }
 function createUserinterface(roomMembers) {
-  for (let id of roomMembers) {
+  for (let user of roomMembers) {
     //check if clientInterface is already displayed
     const isInterfaceGenerated = [...videoInputs.children].find(
-      (child) => id === child.id
+      (child) => user.id === child.id
     );
     console.log(isInterfaceGenerated);
     if (!isInterfaceGenerated) {
       //random color generate
-      const randomColorPicker = Math.floor(Math.random() * 22);
       let newUserInterface = document.createElement("div");
       newUserInterface.classList.add("video_box");
-      newUserInterface.style.backgroundColor =
-        userInterfaceColorsArray[randomColorPicker];
-      newUserInterface.id = id;
+      newUserInterface.style.backgroundColor = user.color;
+      newUserInterface.id = user.id;
       newUserInterface.innerHTML = `
       <div  class="user_Img">
       <p>Client</p>
@@ -141,23 +139,23 @@ function createUserinterface(roomMembers) {
     }
   }
 }
-function deleteUserinterface(clientId, roomMembers) {
+function deleteUserinterface(roomMembers) {
   if (Array.isArray(roomMembers) && roomMembers.length != 0) {
-    for (let id of roomMembers) {
+    for (let user of roomMembers) {
       // console.log(id);
       //check if clientInterface is already displayed
       const isInterfaceGenerated = [...videoInputs.children].find(
-        (child) => id === child.id
+        (child) => user.id === child.id
       );
       // console.log(isInterfaceGenerated);
       if (isInterfaceGenerated) {
         // console.log(clientId);
-        let removedChild = document.getElementById(`${clientId}`);
+        let removedChild = document.getElementById(`${user.id}`);
         videoInputs.removeChild(removedChild);
       }
     }
   } else {
-    let removedChild = document.getElementById(`${clientId}`);
+    let removedChild = document.getElementById(`${user.id}`);
     videoInputs.removeChild(removedChild);
   }
 }
