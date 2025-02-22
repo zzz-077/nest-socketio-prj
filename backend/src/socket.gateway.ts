@@ -17,16 +17,10 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
   private UniqUsers = new Set<String>();
-  //user uniq  join in map
-  userJoined(client: Socket) {
-    //save user in set
-    this.UniqUsers.add(client.id);
-    // console.log(this.UniqUsers);
-  }
   //join room
   @SubscribeMessage('joinRoom')
   JoinRoom(@ConnectedSocket() client: Socket) {
-    console.log('=====================================');
+    // console.log('=====================================');
 
     //store all rooms
     let checkRooms = this.server.sockets.adapter.rooms;
@@ -83,17 +77,18 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
       leavedRoom: roomId,
       clientId: client.id,
     });
-    // console.log(checkRooms);
+    client.emit('leavedRoom', {
+      roomMembers: usersInRoom,
+      leavedRoom: roomId,
+      clientId: client.id,
+    });
   }
   //connect clientSocket
   handleConnection(client: Socket) {
     console.log(`Client connected: ${client.id}`);
-    this.userJoined(client);
   }
   //disconnect clientSocket
   handleDisconnect(client: Socket) {
-    // this.UniqUsers.delete(client.id);
-    // console.log('log1', this.UniqUsers);
     console.log(`Client disconnected: ${client.id}`);
   }
 }
