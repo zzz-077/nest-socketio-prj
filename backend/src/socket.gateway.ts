@@ -29,32 +29,18 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     //check if there is not created room yet
     for (let [room, ids] of checkRooms) {
       //if there is room
-      console.log('ROOMS=', room);
-
       if (room.length === 6) {
-        console.log('ROOM with length 6 =', room);
         if (ids.size === 1) {
-          console.log('ids=', ids);
           checkIfFreeRoomExists = true;
           client.join(room);
           const userGeneratedData = { id: client.id, color: getRandomColor };
           //set user in Map
           this.roomsMap.get(room)?.push(userGeneratedData);
-          console.log('GetsExistingRoomMap', this.roomsMap.get(room));
-
           this.server.to(room).emit('joinedRoom', {
             roomMembers: this.roomsMap.get(room),
             JoinedRoom: room,
           });
-
-          // for (let [room, users] of this.roomsMap) {
-          // if(users.length===1){
-          //   this.roomsMap.get(room)?.push()
-          // }
-          // }
           break;
-        } else {
-          console.log('all ids=', ids);
         }
       }
     }
@@ -96,10 +82,12 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // console.log(updatedUsers);
     client.leave(roomId);
     this.server.to(roomId).emit('leavedRoom', {
+      roomMembers: this.roomsMap.get(roomId),
       clientId: client.id,
       leavedRoom: roomId,
     });
     client.emit('leavedRoom', {
+      roomMembers: this.roomsMap.get(roomId),
       clientId: client.id,
       leavedRoom: roomId,
     });
@@ -119,7 +107,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
           const updatedUsers =
             this.roomsMap.get(room)?.filter((data) => data.id !== client.id) ||
             [];
-          console.log('updatedUsers: ', updatedUsers);
+          // console.log('updatedUsers: ', updatedUsers);
           if (updatedUsers.length > 0) {
             this.roomsMap.set(room, updatedUsers);
           } else {
@@ -135,32 +123,53 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(this.roomsMap);
     console.log(`Client disconnected: ${client.id}`);
   }
-
+  //random color generate for userData
   createRandomColorGenerator() {
     const userInterfaceColorsArray = [
-      '#FF0000',
-      '#00FF00',
-      '#0000FF',
-      '#FFFF00',
-      '#FF00FF',
-      '#00FFFF', // Basic colors
-      '#FFB3BA',
-      '#FFDFBA',
-      '#FFFFBA',
-      '#BAFFC9',
-      '#BAE1FF', // Pastel colors
-      '#1B1B1B',
-      '#2C2C2C',
-      '#3D3D3D',
-      '#4E4E4E',
-      '#5F5F5F', // Dark tones
-      '#E63946',
-      '#F4A261',
-      '#2A9D8F',
-      '#264653',
-      '#8AB17D', // Vibrant colors
+      'rgba(255, 0, 0, 1)',
+      'rgba(0, 255, 0, 1)',
+      'rgba(0, 0, 255, 1)',
+      'rgba(255, 255, 0, 1)',
+      'rgba(255, 0, 255, 1)',
+      'rgba(0, 255, 255, 1)', // Basic colors
+
+      'rgba(255, 160, 122, 1)',
+      'rgba(255, 215, 0, 1)',
+      'rgba(255, 105, 180, 1)',
+      'rgba(152, 251, 152, 1)',
+      'rgba(135, 206, 250, 1)',
+      'rgba(173, 216, 230, 1)', // Light & soft
+
+      'rgba(255, 179, 186, 1)',
+      'rgba(255, 223, 186, 1)',
+      'rgba(255, 255, 186, 1)',
+      'rgba(186, 255, 201, 1)',
+      'rgba(186, 225, 255, 1)', // Pastels
+
+      'rgba(242, 141, 53, 1)',
+      'rgba(255, 175, 135, 1)',
+      'rgba(255, 195, 160, 1)',
+      'rgba(197, 225, 165, 1)',
+      'rgba(212, 165, 165, 1)',
+      'rgba(255, 221, 193, 1)', // Warm tones
+
+      'rgba(230, 57, 70, 1)',
+      'rgba(244, 162, 97, 1)',
+      'rgba(42, 157, 143, 1)',
+      'rgba(138, 177, 125, 1)',
+      'rgba(255, 214, 224, 1)',
+      'rgba(255, 218, 193, 1)', // Vibrant & warm
+
+      'rgba(255, 235, 153, 1)',
+      'rgba(181, 234, 215, 1)',
+      'rgba(199, 206, 234, 1)',
+      'rgba(246, 198, 234, 1)',
+      'rgba(226, 240, 203, 1)',
+      'rgba(245, 225, 253, 1)', // Soft pastels
     ];
-    const randomNumber = Math.floor(Math.random() * 21);
+    const randomNumber = Math.floor(
+      Math.random() * userInterfaceColorsArray.length,
+    );
     const getRandomColor = userInterfaceColorsArray[randomNumber];
     return getRandomColor;
   }

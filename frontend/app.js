@@ -14,7 +14,7 @@ socket.on("joinedRoom", (data) => {
 socket.on("leavedRoom", (data) => {
   console.log("===============leave==================");
   console.log(data);
-  deleteUserinterface(data.clientId);
+  deleteUserinterface(data.clientId, data.roomMembers);
 });
 /*===================================*/
 /*=========COMMON VARIABLES==========*/
@@ -129,27 +129,59 @@ function createUserinterface(roomMembers) {
     // console.log(isInterfaceGenerated);
     if (!isInterfaceGenerated) {
       //random color generate
+      let UserColor = user.color;
       let newUserInterface = document.createElement("div");
       newUserInterface.classList.add("video_box");
-      newUserInterface.style.backgroundColor = user.color;
+      newUserInterface.style.backgroundColor = UserColor;
       newUserInterface.id = user.id;
+      const changedUserColorForImg = modifyRGBBySubtracting(UserColor);
+      console.log(changedUserColorForImg);
       newUserInterface.innerHTML = `
-      <div  class="user_Img">
-      <p>Client</p>
+      <div
+      style="background-color:${changedUserColorForImg};"
+      class="user_Img">
       </div>`;
       videoInputs.appendChild(newUserInterface);
     }
   }
 }
-function deleteUserinterface(clientId) {
+function deleteUserinterface(clientId, roomMembers) {
   const isInterfaceGenerated = [...videoInputs.children].find(
     (child) => clientId === child.id
   );
-  console.log(isInterfaceGenerated);
+  // console.log(isInterfaceGenerated);
+  console.log(0);
   if (isInterfaceGenerated) {
     // console.log(clientId);
     let removedChild = document.getElementById(`${clientId}`);
-    console.log(removedChild);
-    videoInputs.removeChild(removedChild);
+    console.log(1);
+    if (!roomMembers) {
+      console.log(2);
+      console.log(roomMembers);
+      while (videoInputs.firstChild) {
+        videoInputs.removeChild(videoInputs.firstChild);
+      }
+    } else {
+      console.log(3);
+      videoInputs.removeChild(removedChild);
+    }
   }
+}
+function modifyRGBBySubtracting(rgbaColor) {
+  const regex = /rgba\((\d+), (\d+), (\d+), ([\d.]+)\)/;
+
+  if (regex.test(rgbaColor)) {
+    // Extract the RGB values and alpha
+    const [, r, g, b, a] = rgbaColor.match(regex);
+
+    // Subtract 15 from each RGB value, ensuring it stays within 0-255 range
+    const adjustValue = (value) => {
+      return Math.max(parseInt(value) - 25, 0); // Ensure the value is at least 0
+    };
+    const newR = adjustValue(r);
+    const newG = adjustValue(g);
+    const newB = adjustValue(b);
+    return `rgba(${newR}, ${newG}, ${newB}, ${a})`;
+  }
+  return rgbaColor;
 }
