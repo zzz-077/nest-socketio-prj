@@ -5,14 +5,16 @@ socket = io("http://localhost:3335");
 
 //gets callback from back about joining room
 socket.on("joinedRoom", (data) => {
+  console.log("===============join==================");
   JoinedRoomId = data.JoinedRoom;
   console.log(data);
   createUserinterface(data.roomMembers);
 });
 //gets callback from back about leaving room
 socket.on("leavedRoom", (data) => {
+  console.log("===============leave==================");
   console.log(data);
-  deleteUserinterface(data.roomMembers);
+  deleteUserinterface(data.clientId);
 });
 /*===================================*/
 /*=========COMMON VARIABLES==========*/
@@ -124,7 +126,7 @@ function createUserinterface(roomMembers) {
     const isInterfaceGenerated = [...videoInputs.children].find(
       (child) => user.id === child.id
     );
-    console.log(isInterfaceGenerated);
+    // console.log(isInterfaceGenerated);
     if (!isInterfaceGenerated) {
       //random color generate
       let newUserInterface = document.createElement("div");
@@ -139,23 +141,15 @@ function createUserinterface(roomMembers) {
     }
   }
 }
-function deleteUserinterface(roomMembers) {
-  if (Array.isArray(roomMembers) && roomMembers.length != 0) {
-    for (let user of roomMembers) {
-      // console.log(id);
-      //check if clientInterface is already displayed
-      const isInterfaceGenerated = [...videoInputs.children].find(
-        (child) => user.id === child.id
-      );
-      // console.log(isInterfaceGenerated);
-      if (isInterfaceGenerated) {
-        // console.log(clientId);
-        let removedChild = document.getElementById(`${user.id}`);
-        videoInputs.removeChild(removedChild);
-      }
-    }
-  } else {
-    let removedChild = document.getElementById(`${user.id}`);
+function deleteUserinterface(clientId) {
+  const isInterfaceGenerated = [...videoInputs.children].find(
+    (child) => clientId === child.id
+  );
+  console.log(isInterfaceGenerated);
+  if (isInterfaceGenerated) {
+    // console.log(clientId);
+    let removedChild = document.getElementById(`${clientId}`);
+    console.log(removedChild);
     videoInputs.removeChild(removedChild);
   }
 }
