@@ -126,7 +126,13 @@ function createUserinterface(roomMembers) {
     const isInterfaceGenerated = [...videoInputs.children].find(
       (child) => user.id === child.id
     );
-    // console.log(isInterfaceGenerated);
+    if (roomMembers.length === 1 && !isInterfaceGenerated) {
+      while (videoInputs.firstChild) {
+        videoInputs.removeChild(videoInputs.firstChild);
+      }
+      console.log("videoInput:", videoInputs);
+    }
+
     if (!isInterfaceGenerated) {
       //random color generate
       let UserColor = user.color;
@@ -176,7 +182,7 @@ function modifyRGBBySubtracting(rgbaColor) {
 
     // Subtract 15 from each RGB value, ensuring it stays within 0-255 range
     const adjustValue = (value) => {
-      return Math.max(parseInt(value) - 25, 0); // Ensure the value is at least 0
+      return Math.max(parseInt(value) - 105, 0); // Ensure the value is at least 0
     };
     const newR = adjustValue(r);
     const newG = adjustValue(g);

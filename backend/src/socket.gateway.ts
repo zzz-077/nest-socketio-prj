@@ -114,6 +114,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
             this.roomsMap.delete(room);
           }
           this.server.to(room).emit('leavedRoom', {
+            roomMembers: this.roomsMap.get(room),
             clientId: client.id,
             leavedRoom: room,
           });

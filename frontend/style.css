@@ -175,9 +175,9 @@ button {
   background-color: #fa5f9b;
 } */
 .callRoom_container .callRoom_box .video_box .user_Img {
-  width: 150px;
-  height: 150px;
-  border-radius: 5rem;
+  width: 180px;
+  height: 180px;
+  border-radius: 20rem;
   overflow: hidden;
 }
 .callRoom_container .callRoom_box .video_box .user_Img img {
