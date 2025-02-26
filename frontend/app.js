@@ -16,37 +16,50 @@ socket.on("leavedRoom", (data) => {
   console.log(data);
   deleteUserinterface(data.clientId, data.roomMembers);
 });
+
+socket.on("agoraToken", async (token) => {
+  console.log("agoraToken=", token);
+
+  // Check if the local stream is initialized
+  if (!localStream) {
+    localStream = AgoraRTC.createMicrophoneAndCameraTracks({
+      audio: true,
+      video: true,
+      screen: false, // Set to true if you want screen sharing
+    });
+  }
+
+  // Initialize the stream (this accesses the local camera and microphone)
+  // Join the channel
+  client.join(
+    token,
+    "your-channel-name",
+    null,
+    (uid) => {
+      console.log("User " + uid + " joined the channel");
+
+      // Publish the local stream to the channel
+      client.publish(localStream, (err) => {
+        console.error("Failed to publish local stream:", err);
+      });
+    },
+    (err) => {
+      console.error("Failed to join channel:", err);
+    }
+  );
+});
+
 /*===================================*/
 /*=========COMMON VARIABLES==========*/
 /*===================================*/
+
 JoinedRoomId = "";
 let mainContainer = document.querySelector(".main_container");
 let callRoomContainer = document.querySelector(".callRoom_container");
 let videoInputs = document.querySelector(".videoInputs");
 let newUserInterface = document.createElement("div");
-const userInterfaceColorsArray = [
-  "#FF0000",
-  "#00FF00",
-  "#0000FF",
-  "#FFFF00",
-  "#FF00FF",
-  "#00FFFF", // Basic colors
-  "#FFB3BA",
-  "#FFDFBA",
-  "#FFFFBA",
-  "#BAFFC9",
-  "#BAE1FF", // Pastel colors
-  "#1B1B1B",
-  "#2C2C2C",
-  "#3D3D3D",
-  "#4E4E4E",
-  "#5F5F5F", // Dark tones
-  "#E63946",
-  "#F4A261",
-  "#2A9D8F",
-  "#264653",
-  "#8AB17D", // Vibrant colors
-];
+let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+let localStream;
 /*===================================*/
 /*==========MAIN FUNCTIONS===========*/
 /*===================================*/
@@ -68,16 +81,22 @@ function CameraBtnClick(bool) {
   let cameraAudio = new Audio();
   let cameraBtnTurnedOn = document.getElementsByClassName("videoBtns")[0];
   let cameraBtnTurnedOff = document.getElementsByClassName("videoBtns")[1];
-  if (bool) {
-    cameraBtnTurnedOn.classList.add("inactive");
-    cameraBtnTurnedOn.classList.remove("active");
-    cameraBtnTurnedOff.classList.add("active");
-    cameraBtnTurnedOff.classList.remove("inactive");
+  if (localStream) {
+    if (bool) {
+      cameraBtnTurnedOn.classList.add("inactive");
+      cameraBtnTurnedOn.classList.remove("active");
+      cameraBtnTurnedOff.classList.add("active");
+      cameraBtnTurnedOff.classList.remove("inactive");
+      localStream.muteVideo(false);
+    } else {
+      cameraBtnTurnedOn.classList.remove("inactive");
+      cameraBtnTurnedOn.classList.add("active");
+      cameraBtnTurnedOff.classList.add("inactive");
+      cameraBtnTurnedOff.classList.remove("active");
+      localStream.muteVideo(true);
+    }
   } else {
-    cameraBtnTurnedOn.classList.remove("inactive");
-    cameraBtnTurnedOn.classList.add("active");
-    cameraBtnTurnedOff.classList.add("inactive");
-    cameraBtnTurnedOff.classList.remove("active");
+    console.error("Local stream is not initialized");
   }
   cameraAudio.src = "assets/sounds/discord-video-share.mp3";
   cameraAudio.load();
@@ -90,20 +109,26 @@ function MicroBtnClick(bool) {
   let microBtnTurnedOff = document.getElementsByClassName("microBtns")[1];
   microMuteAudio.src = "assets/sounds/discord-mute.mp3";
   microUnmuteAudio.src = "assets/sounds/discord-unmute.mp3";
-  if (bool) {
-    microBtnTurnedOn.classList.add("inactive");
-    microBtnTurnedOn.classList.remove("active");
-    microBtnTurnedOff.classList.add("active");
-    microBtnTurnedOff.classList.remove("inactive");
-    microMuteAudio.load();
-    microMuteAudio.play();
+  if (localStream) {
+    if (bool) {
+      microBtnTurnedOn.classList.add("inactive");
+      microBtnTurnedOn.classList.remove("active");
+      microBtnTurnedOff.classList.add("active");
+      microBtnTurnedOff.classList.remove("inactive");
+      microMuteAudio.load();
+      microMuteAudio.play();
+      localStream.muteAudio(false);
+    } else {
+      microBtnTurnedOn.classList.remove("inactive");
+      microBtnTurnedOn.classList.add("active");
+      microBtnTurnedOff.classList.add("inactive");
+      microBtnTurnedOff.classList.remove("active");
+      microUnmuteAudio.load();
+      microUnmuteAudio.play();
+      localStream.muteAudio(true);
+    }
   } else {
-    microBtnTurnedOn.classList.remove("inactive");
-    microBtnTurnedOn.classList.add("active");
-    microBtnTurnedOff.classList.add("inactive");
-    microBtnTurnedOff.classList.remove("active");
-    microUnmuteAudio.load();
-    microUnmuteAudio.play();
+    console.error("Local stream is not initialized");
   }
 }
 function LeaveBtnClick() {
@@ -191,3 +216,25 @@ function modifyRGBBySubtracting(rgbaColor) {
   }
   return rgbaColor;
 }
+/*======================*/
+/*========AGORA=========*/
+/*======================*/
+
+client.on("stream-added", (evt) => {
+  let remoteStream = evt.stream;
+  console.log("New stream added: " + remoteStream.getId());
+
+  // Subscribe to the remote stream
+  client.subscribe(remoteStream, (err) => {
+    console.error("Error subscribing to remote stream:", err);
+  });
+});
+
+// When the remote stream is published, play it
+client.on("stream-subscribed", (evt) => {
+  let remoteStream = evt.stream;
+  console.log("Subscribed to remote stream: " + remoteStream.getId());
+
+  // Play the remote stream
+  remoteStream.play("remote-stream");
+});
