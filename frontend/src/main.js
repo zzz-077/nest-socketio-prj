@@ -22,7 +22,7 @@ let initRtc = async () => {
 
   audioTracks.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
   rtcClient.publish(audioTracks.localAudioTrack);
-  audioTracks.localAudioTrack.setVolume(100);
+  initVolumeIndicator();
 };
 let leaveRtc = async () => {
   audioTracks.localAudioTrack.stop();
@@ -41,11 +41,27 @@ let handleUserPublished = async (user, mediaType) => {
   if (mediaType === "audio") {
     audioTracks.remoteAudioTracks[user.uid] = [user.audioTrack];
     user.audioTrack.play();
-    user.audioTrack.setVolume(100);
   }
 };
 let handleUserLeft = async (user) => {
   delete audioTracks.remoteAudioTracks[user.uid];
+};
+let initVolumeIndicator = async (user) => {
+  AgoraRTC.setParameter("AUDIO_VOLUME_INDICATION_INTERVAL", 200);
+  rtcClient.enableAudioVolumeIndicator();
+  rtcClient.on("volume-indicator", (volume) => {
+    volume.forEach((volume) => {
+      let userBox = document.getElementsByClassName(`user-${volume.uid}`)[0];
+
+      if (volume.level > 40) {
+        console.log("talking");
+        userBox.style.borderColor = "#00ff00";
+      } else {
+        console.log("not talking");
+        userBox.style.borderColor = "#00000000";
+      }
+    });
+  });
 };
 /*===================================*/
 /*=========SOCKET FUNCTIONS==========*/
@@ -100,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
 /*===================================*/
 //joins user in room
 function StartCallBtnClick() {
-  socket.emit("joinRoom");
+  socket.emit("joinRoom", rtcUid);
   mainContainer.classList.add("disable");
   callRoomContainer.classList.add("enable");
   let startAudio = new Audio();
@@ -128,7 +144,6 @@ function CameraBtnClick(bool) {
     cameraBtnTurnedOn.classList.add("active");
     cameraBtnTurnedOff.classList.add("inactive");
     cameraBtnTurnedOff.classList.remove("active");
-    localStream.muteVideo(true);
   }
 
   cameraAudio.src = "assets/sounds/discord-video-share.mp3";
@@ -177,6 +192,7 @@ function LeaveBtnClick() {
 }
 function createUserinterface(roomMembers) {
   for (let user of roomMembers) {
+    console.log("USER", user);
     //check if clientInterface is already displayed
     const isInterfaceGenerated = [...videoInputs.children].find(
       (child) => user.id === child.id
@@ -193,6 +209,7 @@ function createUserinterface(roomMembers) {
       let UserColor = user.color;
       let newUserInterface = document.createElement("div");
       newUserInterface.classList.add("video_box");
+      newUserInterface.classList.add(`user-${user.rtcUid}`);
       newUserInterface.style.backgroundColor = UserColor;
       newUserInterface.id = user.id;
       const changedUserColorForImg = modifyRGBBySubtracting(UserColor);

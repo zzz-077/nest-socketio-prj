@@ -17,11 +17,12 @@ import { uid } from 'uid';
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
-  roomsMap = new Map<string, { id: string; color: string }[]>();
+  roomsMap = new Map<string, { id: string; color: string; rtcUid: number }[]>();
   //join room
   @SubscribeMessage('joinRoom')
-  JoinRoom(@ConnectedSocket() client: Socket) {
+  JoinRoom(@ConnectedSocket() client: Socket, @Body() rtcUid: number) {
     console.log('=================join================');
+    console.log('rtcUid:', rtcUid);
 
     const getRandomColor = this.createRandomColorGenerator();
     //store all rooms
@@ -34,7 +35,11 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
         if (ids.size === 1) {
           checkIfFreeRoomExists = true;
           client.join(room);
-          const userGeneratedData = { id: client.id, color: getRandomColor };
+          const userGeneratedData = {
+            id: client.id,
+            color: getRandomColor,
+            rtcUid: rtcUid,
+          };
           //set user in Map
           this.roomsMap.get(room)?.push(userGeneratedData);
           this.server.to(room).emit('joinedRoom', {
@@ -55,7 +60,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.roomsMap.set(randomRoomId, []);
       this.roomsMap
         .get(randomRoomId)
-        ?.push({ id: client.id, color: getRandomColor });
+        ?.push({ id: client.id, color: getRandomColor, rtcUid: rtcUid });
       this.server.to(randomRoomId).emit('joinedRoom', {
         roomMembers: this.roomsMap.get(randomRoomId),
         JoinedRoom: randomRoomId,
