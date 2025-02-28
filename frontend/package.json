@@ -1,16 +1,18 @@
 {
   "name": "frontend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "live-server --port=3000"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "devDependencies": {
+    "vite": "^6.2.0"
+  },
   "dependencies": {
-    "agora-rtc-sdk-ng": "^4.23.1"
+    "agora-rtc-sdk-ng": "^4.23.1",
+    "nodemon": "^3.1.9"
   }
 }
