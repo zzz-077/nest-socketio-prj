@@ -12,11 +12,9 @@ import {
 import { log } from 'console';
 import { Server, Socket } from 'socket.io';
 import { uid } from 'uid';
-import { AgoraService } from './agora/agora.service';
 
 @WebSocketGateway({ cors: { origin: '*', credentials: true } })
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  constructor(private agoraService: AgoraService) {}
   @WebSocketServer()
   server: Server;
   roomsMap = new Map<string, { id: string; color: string }[]>();
@@ -62,11 +60,6 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
         roomMembers: this.roomsMap.get(randomRoomId),
         JoinedRoom: randomRoomId,
       });
-      const agoraToken = this.agoraService.generateToken(
-        randomRoomId,
-        client.id,
-      );
-      client.emit('agoraToken', agoraToken);
     }
     console.log('room:', this.roomsMap);
   }

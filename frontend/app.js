@@ -1,7 +1,48 @@
+// import AgoraRTC from "agora-rtc-sdk-ng";
+// import appId from "./appId";
+/*==================================*/
+/*=========AGORA FUNCTIONS==========*/
+/*==================================*/
+const appId = "31417420be70429992b3c56cf9c74dda";
+const token = null;
+const rtcUid = Math.floor(Math.random() * 2032);
+let roomId = "main";
+let audioTracks = {
+  localAudioTrack: null,
+  remoteAudioTracks: {},
+};
+let rtcClient;
+let initRtc = async () => {
+  rtcClient = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+  rtcClient.on("user-joined", handleUserJoined);
+  rtcClient.on("user-published", handleUserPublished);
+  await rtcClient.join(appId, roomId, token, rtcUid);
+
+  audioTracks.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+
+  rtcClient.publish(audioTracks.localAudioTrack);
+};
+let leaveRtc = async () => {
+  audioTracks.localAudioTrack.stop();
+  audioTracks.localAudioTrack.close();
+
+  rtcClient.unpublish();
+  rtcClient.leave();
+};
+let handleUserJoined = async (user) => {
+  console.log("User Joined:", user);
+};
+let handleUserPublished = async (user, mediaType) => {
+  await AgoraRTC.subscribe(user, mediaType);
+  if (mediaType === "audio") {
+    audioTracks.remoteAudioTracks[user.uid] = [user.audioTracks];
+    user.audioTracks.play();
+  }
+};
 /*===================================*/
 /*=========SOCKET FUNCTIONS==========*/
 /*===================================*/
-socket = io("http://localhost:3335");
+let socket = io("http://localhost:3335");
 
 //gets callback from back about joining room
 socket.on("joinedRoom", (data) => {
@@ -17,49 +58,16 @@ socket.on("leavedRoom", (data) => {
   deleteUserinterface(data.clientId, data.roomMembers);
 });
 
-socket.on("agoraToken", async (token) => {
-  console.log("agoraToken=", token);
-
-  // Check if the local stream is initialized
-  if (!localStream) {
-    localStream = AgoraRTC.createMicrophoneAndCameraTracks({
-      audio: true,
-      video: true,
-      screen: false, // Set to true if you want screen sharing
-    });
-  }
-
-  // Initialize the stream (this accesses the local camera and microphone)
-  // Join the channel
-  client.join(
-    token,
-    "your-channel-name",
-    null,
-    (uid) => {
-      console.log("User " + uid + " joined the channel");
-
-      // Publish the local stream to the channel
-      client.publish(localStream, (err) => {
-        console.error("Failed to publish local stream:", err);
-      });
-    },
-    (err) => {
-      console.error("Failed to join channel:", err);
-    }
-  );
-});
-
 /*===================================*/
 /*=========COMMON VARIABLES==========*/
 /*===================================*/
 
-JoinedRoomId = "";
+let JoinedRoomId = "";
 let mainContainer = document.querySelector(".main_container");
 let callRoomContainer = document.querySelector(".callRoom_container");
 let videoInputs = document.querySelector(".videoInputs");
 let newUserInterface = document.createElement("div");
-let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-let localStream;
+
 /*===================================*/
 /*==========MAIN FUNCTIONS===========*/
 /*===================================*/
@@ -144,6 +152,7 @@ function LeaveBtnClick() {
   }
   mainContainer.classList.remove("disable");
   callRoomContainer.classList.remove("enable");
+  leaveRtc();
 }
 function createUserinterface(roomMembers) {
   for (let user of roomMembers) {
@@ -173,6 +182,7 @@ function createUserinterface(roomMembers) {
       class="user_Img">
       </div>`;
       videoInputs.appendChild(newUserInterface);
+      initRtc();
     }
   }
 }
@@ -216,25 +226,3 @@ function modifyRGBBySubtracting(rgbaColor) {
   }
   return rgbaColor;
 }
-/*======================*/
-/*========AGORA=========*/
-/*======================*/
-
-client.on("stream-added", (evt) => {
-  let remoteStream = evt.stream;
-  console.log("New stream added: " + remoteStream.getId());
-
-  // Subscribe to the remote stream
-  client.subscribe(remoteStream, (err) => {
-    console.error("Error subscribing to remote stream:", err);
-  });
-});
-
-// When the remote stream is published, play it
-client.on("stream-subscribed", (evt) => {
-  let remoteStream = evt.stream;
-  console.log("Subscribed to remote stream: " + remoteStream.getId());
-
-  // Play the remote stream
-  remoteStream.play("remote-stream");
-});
