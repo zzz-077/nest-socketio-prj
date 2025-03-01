@@ -5,24 +5,31 @@ import appId from "./appId";
 /*==================================*/
 const token = null;
 const rtcUid = Math.floor(Math.random() * 2032);
-let roomId = "main";
+// let roomId = "";
 let audioTracks = {
   localAudioTrack: null,
   remoteAudioTracks: {},
 };
 let rtcClient;
+let isJoinedInSocket = false;
+let userSocketId = "";
 
-let initRtc = async () => {
-  rtcClient = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-  rtcClient.on("user-joined", handleUserJoined);
-  rtcClient.on("user-published", handleUserPublished);
-  rtcClient.on("user-left", handleUserLeft);
+let initRtc = async (roomId) => {
+  if (roomId) {
+    rtcClient = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+    rtcClient.on("user-joined", handleUserJoined);
+    rtcClient.on("user-published", handleUserPublished);
+    rtcClient.on("user-left", handleUserLeft);
 
-  await rtcClient.join(appId, roomId, token, rtcUid);
+    console.log("ROOMID= ", roomId);
+    await rtcClient.join(appId, roomId, token, rtcUid);
 
-  audioTracks.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
-  rtcClient.publish(audioTracks.localAudioTrack);
-  initVolumeIndicator();
+    audioTracks.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+    rtcClient.publish(audioTracks.localAudioTrack);
+    initVolumeIndicator();
+  } else {
+    console.log("NO ROOMID!");
+  }
 };
 let leaveRtc = async () => {
   audioTracks.localAudioTrack.stop();
@@ -52,12 +59,12 @@ let initVolumeIndicator = async (user) => {
   rtcClient.on("volume-indicator", (volume) => {
     volume.forEach((volume) => {
       let userBox = document.getElementsByClassName(`user-${volume.uid}`)[0];
-
+      // console.log("VOLUME= ", volume.level);
       if (volume.level > 40) {
-        console.log("talking");
+        // console.log("talking");
         userBox.style.borderColor = "#00ff00";
       } else {
-        console.log("not talking");
+        // console.log("not talking");
         userBox.style.borderColor = "#00000000";
       }
     });
@@ -70,22 +77,31 @@ let socket = io("http://localhost:3335");
 
 //gets callback from back about joining room
 socket.on("joinedRoom", (data) => {
-  console.log("===============join==================");
+  console.log("===============join==================", data);
   JoinedRoomId = data.JoinedRoom;
-  console.log(data);
+  while (videoInputs.firstChild) {
+    videoInputs.removeChild(videoInputs.firstChild);
+  }
   createUserinterface(data.roomMembers);
 });
 //gets callback from back about leaving room
 socket.on("leavedRoom", (data) => {
-  console.log("===============leave==================");
-  console.log(data);
+  console.log("===============leave==================", data);
   deleteUserinterface(data.clientId, data.roomMembers);
+});
+socket.on("joinedClientInRoomLocalData", (data) => {
+  // console.log("===============JOINED LOCALLY==================");
+  userSocketId = data.clientId;
+  const userBox = document.getElementById(userSocketId);
+  // console.log("userBox=", userBox);
+  if (userBox) {
+    initRtc(JoinedRoomId);
+  }
 });
 
 /*===================================*/
 /*=========COMMON VARIABLES==========*/
 /*===================================*/
-
 let JoinedRoomId = "";
 let mainContainer = document.querySelector(".main_container");
 let callRoomContainer = document.querySelector(".callRoom_container");
@@ -123,7 +139,6 @@ function StartCallBtnClick() {
   startAudio.src = "assets/sounds/discord-join.mp3";
   startAudio.load();
   startAudio.play();
-  initRtc();
 }
 /*===================================*/
 /*========CALLROOM FUNCTIONS=========*/
@@ -192,7 +207,7 @@ function LeaveBtnClick() {
 }
 function createUserinterface(roomMembers) {
   for (let user of roomMembers) {
-    console.log("USER", user);
+    // console.log("USER", user);
     //check if clientInterface is already displayed
     const isInterfaceGenerated = [...videoInputs.children].find(
       (child) => user.id === child.id
@@ -201,7 +216,7 @@ function createUserinterface(roomMembers) {
       while (videoInputs.firstChild) {
         videoInputs.removeChild(videoInputs.firstChild);
       }
-      console.log("videoInput:", videoInputs);
+      // console.log("videoInput:", videoInputs);
     }
 
     if (!isInterfaceGenerated) {
@@ -213,7 +228,7 @@ function createUserinterface(roomMembers) {
       newUserInterface.style.backgroundColor = UserColor;
       newUserInterface.id = user.id;
       const changedUserColorForImg = modifyRGBBySubtracting(UserColor);
-      console.log(changedUserColorForImg);
+      // console.log(changedUserColorForImg);
       newUserInterface.innerHTML = `
       <div
       style="background-color:${changedUserColorForImg};"
@@ -224,23 +239,22 @@ function createUserinterface(roomMembers) {
   }
 }
 function deleteUserinterface(clientId, roomMembers) {
-  const isInterfaceGenerated = [...videoInputs.children].find(
-    (child) => clientId === child.id
-  );
-  // console.log(isInterfaceGenerated);
-  console.log(0);
-  if (isInterfaceGenerated) {
+  console.log("clientId= ", clientId);
+  console.log("roomMembers= ", roomMembers);
+  let removedChild = document.getElementById(`${clientId}`);
+  // console.log(0);
+  if (removedChild) {
     // console.log(clientId);
-    let removedChild = document.getElementById(`${clientId}`);
-    console.log(1);
+    // console.log(1);
     if (!roomMembers) {
-      console.log(2);
-      console.log(roomMembers);
+      // console.log(2);
+      // console.log(roomMembers);
       while (videoInputs.firstChild) {
         videoInputs.removeChild(videoInputs.firstChild);
       }
+      // isJoinedInSocket = false;
     } else {
-      console.log(3);
+      // console.log(3);
       videoInputs.removeChild(removedChild);
     }
   }

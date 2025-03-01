@@ -46,7 +46,9 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
             roomMembers: this.roomsMap.get(room),
             JoinedRoom: room,
           });
-
+          client.emit('joinedClientInRoomLocalData', {
+            clientId: client.id,
+          });
           break;
         }
       }
@@ -65,6 +67,9 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
         roomMembers: this.roomsMap.get(randomRoomId),
         JoinedRoom: randomRoomId,
       });
+      client.emit('joinedClientInRoomLocalData', {
+        clientId: client.id,
+      });
     }
     console.log('room:', this.roomsMap);
   }
@@ -76,7 +81,6 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     let getUsersFromRoom = checkRooms.get(roomId);
     // let usersInRoom = getUsersFromRoom ? Array.from(getUsersFromRoom) : [];
     // console.log(usersInRoom);
-
     //remove user from Map
     const updatedUsers =
       this.roomsMap.get(roomId)?.filter((user) => user.id !== client.id) || [];
