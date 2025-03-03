@@ -10,8 +10,11 @@ let audioTracks = {
   localAudioTrack: null,
   remoteAudioTracks: {},
 };
+let videoTracks = {
+  localVideoTrack: null,
+  remoteVideoTracks: {},
+};
 let rtcClient;
-let isJoinedInSocket = false;
 let userSocketId = "";
 
 let initRtc = async (roomId) => {
@@ -24,17 +27,30 @@ let initRtc = async (roomId) => {
     console.log("ROOMID= ", roomId);
     await rtcClient.join(appId, roomId, token, rtcUid);
 
+    //create audio&Publish
     audioTracks.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
     rtcClient.publish(audioTracks.localAudioTrack);
+
+    //create video&Publish
+    // videoTracks.localVideoTrack = await AgoraRTC.createCameraVideoTrack();
+    // rtcClient.publish(videoTracks.localVideoTrack);
     initVolumeIndicator();
   } else {
     console.log("NO ROOMID!");
   }
 };
 let leaveRtc = async () => {
-  audioTracks.localAudioTrack.stop();
-  audioTracks.localAudioTrack.close();
+  // Stop and close audio track if exists
+  if (audioTracks.localAudioTrack) {
+    audioTracks.localAudioTrack.stop();
+    audioTracks.localAudioTrack.close();
+  }
 
+  // Stop and close video track if exists
+  if (videoTracks.localVideoTrack) {
+    videoTracks.localVideoTrack.stop();
+    videoTracks.localVideoTrack.close();
+  }
   rtcClient.unpublish();
   rtcClient.leave();
 };
@@ -49,9 +65,15 @@ let handleUserPublished = async (user, mediaType) => {
     audioTracks.remoteAudioTracks[user.uid] = [user.audioTrack];
     user.audioTrack.play();
   }
+  // if (mediaType === "video") {
+  //   videoTracks.remoteVideoTracks[user.uid] = [user.videoTracks];
+  //   user.videoTracks.play();
+  //   Document.getElementById(userSocketId);
+  // }
 };
 let handleUserLeft = async (user) => {
   delete audioTracks.remoteAudioTracks[user.uid];
+  delete videoTracks.remoteVideoTracks[user.uid];
 };
 let initVolumeIndicator = async (user) => {
   AgoraRTC.setParameter("AUDIO_VOLUME_INDICATION_INTERVAL", 200);
@@ -106,7 +128,6 @@ let JoinedRoomId = "";
 let mainContainer = document.querySelector(".main_container");
 let callRoomContainer = document.querySelector(".callRoom_container");
 let videoInputs = document.querySelector(".videoInputs");
-let newUserInterface = document.createElement("div");
 document.addEventListener("DOMContentLoaded", () => {
   let StartCallButton = document.querySelector(".button_box button");
   let leaveButton = document.querySelector(".leaveCallBtn button");
@@ -144,17 +165,38 @@ function StartCallBtnClick() {
 /*========CALLROOM FUNCTIONS=========*/
 /*===================================*/
 
-function CameraBtnClick(bool) {
+async function CameraBtnClick(bool) {
   let cameraAudio = new Audio();
   let cameraBtnTurnedOn = document.getElementsByClassName("videoBtns")[0];
   let cameraBtnTurnedOff = document.getElementsByClassName("videoBtns")[1];
+  let userBox = document.getElementById(userSocketId);
 
   if (bool) {
+    //create camera locally
+    if (!videoTracks.localVideoTrack) {
+      videoTracks.localVideoTrack = await AgoraRTC.createCameraVideoTrack();
+      await rtcClient.publish(videoTracks.localVideoTrack);
+
+      // Play locally in the div with userSocketId as ID
+      let localVideoContainer = document.getElementById(userSocketId);
+      if (localVideoContainer) {
+        videoTracks.localVideoTrack.play(localVideoContainer);
+      }
+    }
+
     cameraBtnTurnedOn.classList.add("inactive");
     cameraBtnTurnedOn.classList.remove("active");
     cameraBtnTurnedOff.classList.add("active");
     cameraBtnTurnedOff.classList.remove("inactive");
   } else {
+    //disable camera
+    if (videoTracks.localVideoTrack) {
+      videoTracks.localVideoTrack.stop();
+      videoTracks.localVideoTrack.close();
+      rtcClient.unpublish(videoTracks.localVideoTrack);
+      videoTracks.localVideoTrack = null;
+    }
+
     cameraBtnTurnedOn.classList.remove("inactive");
     cameraBtnTurnedOn.classList.add("active");
     cameraBtnTurnedOff.classList.add("inactive");
@@ -252,7 +294,6 @@ function deleteUserinterface(clientId, roomMembers) {
       while (videoInputs.firstChild) {
         videoInputs.removeChild(videoInputs.firstChild);
       }
-      // isJoinedInSocket = false;
     } else {
       // console.log(3);
       videoInputs.removeChild(removedChild);
