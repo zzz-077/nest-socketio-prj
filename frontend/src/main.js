@@ -26,7 +26,7 @@ let initRtc = async (roomId) => {
 
     rtcClient.on("user-left", handleUserLeft);
 
-    console.log("ROOMID= ", roomId);
+    // console.log("ROOMID= ", roomId);
     await rtcClient.join(appId, roomId, token, rtcUid);
 
     //create audio&Publish
@@ -34,7 +34,7 @@ let initRtc = async (roomId) => {
     rtcClient.publish(audioTracks.localAudioTrack);
     initVolumeIndicator();
   } else {
-    console.log("NO ROOMID!");
+    // console.log("NO ROOMID!");
   }
 };
 let leaveRtc = async () => {
@@ -56,10 +56,10 @@ let leaveRtc = async () => {
   rtcClient.leave();
 };
 let handleUserJoined = async (user) => {
-  console.log("User Joined:", user);
+  // console.log("User Joined:", user);
 };
 let handleUserPublished = async (user, mediaType) => {
-  console.log("User Published:", user.uid);
+  // console.log("User Published:", user.uid);
   await rtcClient.subscribe(user, mediaType);
   if (mediaType === "audio") {
     audioTracks.remoteAudioTracks[user.uid] = [user.audioTrack];
@@ -70,14 +70,14 @@ let handleUserPublished = async (user, mediaType) => {
     let remoteVideoContainer = document.getElementsByClassName(
       `user-${user.uid}`
     )[0];
-    console.log("remoteVideoContainer:", remoteVideoContainer);
+    // console.log("remoteVideoContainer:", remoteVideoContainer);
     // remoteVideoContainer.innerHTML = "";
     remoteVideoContainer.children[0].style.display = "none";
     user.videoTrack.play(remoteVideoContainer);
   }
 };
 let handleUserUnPublished = async (user, mediaType) => {
-  console.log("UNPUBLISHED");
+  // console.log("UNPUBLISHED");
   if (mediaType === "video") {
     let remoteVideoContainer = document.getElementsByClassName(
       `user-${user.uid}`
@@ -113,7 +113,7 @@ let socket = io("http://localhost:3335");
 
 //gets callback from back about joining room
 socket.on("joinedRoom", (data) => {
-  console.log("===============join==================", data);
+  // console.log("===============join==================", data);
   JoinedRoomId = data.JoinedRoom;
   while (videoInputs.firstChild) {
     videoInputs.removeChild(videoInputs.firstChild);
@@ -122,7 +122,7 @@ socket.on("joinedRoom", (data) => {
 });
 //gets callback from back about leaving room
 socket.on("leavedRoom", (data) => {
-  console.log("===============leave==================", data);
+  // console.log("===============leave==================", data);
   deleteUserinterface(data.clientId, data.roomMembers);
 });
 socket.on("joinedClientInRoomLocalData", (data) => {
@@ -261,10 +261,10 @@ function LeaveBtnClick() {
   cameraBtnTurnedOff.classList.add("active");
   cameraBtnTurnedOff.classList.remove("inactive");
   if (JoinedRoomId) {
-    console.log("Leaving room:", JoinedRoomId);
+    // console.log("Leaving room:", JoinedRoomId);
     socket.emit("leaveRoom", JoinedRoomId);
   } else {
-    console.log("No room joined yet");
+    // console.log("No room joined yet");
   }
   mainContainer.classList.remove("disable");
   callRoomContainer.classList.remove("enable");
@@ -303,8 +303,8 @@ function createUserinterface(roomMembers) {
   }
 }
 function deleteUserinterface(clientId, roomMembers) {
-  console.log("clientId= ", clientId);
-  console.log("roomMembers= ", roomMembers);
+  // console.log("clientId= ", clientId);
+  // console.log("roomMembers= ", roomMembers);
   let removedChild = document.getElementById(`${clientId}`);
   // console.log(0);
   if (removedChild) {

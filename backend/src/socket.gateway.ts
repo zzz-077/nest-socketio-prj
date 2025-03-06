@@ -21,8 +21,8 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   //join room
   @SubscribeMessage('joinRoom')
   JoinRoom(@ConnectedSocket() client: Socket, @Body() rtcUid: number) {
-    console.log('=================join================');
-    console.log('rtcUid:', rtcUid);
+    // console.log('=================join================');
+    // console.log('rtcUid:', rtcUid);
 
     const getRandomColor = this.createRandomColorGenerator();
     //store all rooms
@@ -71,12 +71,12 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
         clientId: client.id,
       });
     }
-    console.log('room:', this.roomsMap);
+    // console.log('room:', this.roomsMap);
   }
   //leave room
   @SubscribeMessage('leaveRoom')
   leaveRoom(@ConnectedSocket() client: Socket, @Body() roomId: string) {
-    console.log('===============leave==================');
+    // console.log('===============leave==================');
     let checkRooms = this.server.sockets.adapter.rooms;
     let getUsersFromRoom = checkRooms.get(roomId);
     // let usersInRoom = getUsersFromRoom ? Array.from(getUsersFromRoom) : [];
@@ -84,7 +84,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     //remove user from Map
     const updatedUsers =
       this.roomsMap.get(roomId)?.filter((user) => user.id !== client.id) || [];
-    console.log(updatedUsers);
+    // console.log(updatedUsers);
     if (updatedUsers.length > 0) {
       this.roomsMap.set(roomId, updatedUsers);
     } else {
@@ -102,7 +102,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
       clientId: client.id,
       leavedRoom: roomId,
     });
-    console.log(this.roomsMap);
+    // console.log(this.roomsMap);
   }
   //connect clientSocket
   handleConnection(client: Socket) {
@@ -110,7 +110,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
   //disconnect clientSocket
   handleDisconnect(client: Socket) {
-    console.log('===============disconnect==================');
+    // console.log('===============disconnect==================');
     //delete the only room where this client is joined
     for (let [room, users] of this.roomsMap) {
       users.forEach((user) => {
@@ -132,7 +132,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
       });
     }
-    console.log(this.roomsMap);
+    // console.log(this.roomsMap);
     console.log(`Client disconnected: ${client.id}`);
   }
   //random color generate for userData
