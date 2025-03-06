@@ -13,7 +13,13 @@ import { log } from 'console';
 import { Server, Socket } from 'socket.io';
 import { uid } from 'uid';
 
-@WebSocketGateway({ cors: { origin: '*', credentials: true } })
+@WebSocketGateway({
+  cors: {
+    origin: ['https://videoz-ashy.vercel.app/', 'http://localhost:5173/'],
+    credentials: true,
+  },
+  transports: ['websocket', 'polling'],
+})
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
