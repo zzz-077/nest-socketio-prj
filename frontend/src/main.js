@@ -1,5 +1,6 @@
 import AgoraRTC from "agora-rtc-sdk-ng";
 import appId from "./appId";
+const backUrl = import.meta.env.VITE_BACKEND_URL;
 /*==================================*/
 /*=========AGORA FUNCTIONS==========*/
 /*==================================*/
@@ -109,7 +110,7 @@ let initVolumeIndicator = async (user) => {
 /*===================================*/
 /*=========SOCKET FUNCTIONS==========*/
 /*===================================*/
-let socket = io("http://localhost:3335");
+let socket = io(backUrl, { transports: ["websocket", "polling"] });
 
 //gets callback from back about joining room
 socket.on("joinedRoom", (data) => {
@@ -119,6 +120,8 @@ socket.on("joinedRoom", (data) => {
     videoInputs.removeChild(videoInputs.firstChild);
   }
   createUserinterface(data.roomMembers);
+  let loader = document.querySelector(".loader");
+  loader.style.display = "none";
 });
 //gets callback from back about leaving room
 socket.on("leavedRoom", (data) => {
@@ -176,6 +179,8 @@ function StartCallBtnClick() {
   startAudio.src = "assets/sounds/discord-join.mp3";
   startAudio.load();
   startAudio.play();
+  let loader = document.querySelector(".loader");
+  loader.style.display = "flex";
 }
 /*===================================*/
 /*========CALLROOM FUNCTIONS=========*/
