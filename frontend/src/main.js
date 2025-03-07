@@ -1,6 +1,5 @@
 import AgoraRTC from "agora-rtc-sdk-ng";
 import appId from "./appId";
-const backUrl = import.meta.env.VITE_BACKEND_URL;
 /*==================================*/
 /*=========AGORA FUNCTIONS==========*/
 /*==================================*/
@@ -110,7 +109,9 @@ let initVolumeIndicator = async (user) => {
 /*===================================*/
 /*=========SOCKET FUNCTIONS==========*/
 /*===================================*/
-let socket = io(backUrl, { transports: ["polling"] });
+let socket = io("https://nest-socketio-prj.onrender.com", {
+  transports: ["polling"],
+});
 
 //gets callback from back about joining room
 socket.on("joinedRoom", (data) => {
