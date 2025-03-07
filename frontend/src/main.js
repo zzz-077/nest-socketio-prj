@@ -110,7 +110,7 @@ let initVolumeIndicator = async (user) => {
 /*===================================*/
 /*=========SOCKET FUNCTIONS==========*/
 /*===================================*/
-let socket = io(backUrl, { transports: ["websocket", "polling"] });
+let socket = io(backUrl, { transports: ["polling"] });
 
 //gets callback from back about joining room
 socket.on("joinedRoom", (data) => {

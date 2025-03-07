@@ -15,10 +15,10 @@ import { uid } from 'uid';
 
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: ['https://videoz-ashy.vercel.app'],
     credentials: true,
   },
-  transports: ['websocket', 'polling'],
+  transports: ['polling'],
 })
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
