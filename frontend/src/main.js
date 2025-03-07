@@ -177,7 +177,7 @@ function StartCallBtnClick() {
   mainContainer.classList.add("disable");
   callRoomContainer.classList.add("enable");
   let startAudio = new Audio();
-  startAudio.src = "public/sounds/discord-join.mp3";
+  startAudio.src = "/sounds/discord-join.mp3";
   startAudio.load();
   startAudio.play();
   let loader = document.querySelector(".loader");
@@ -228,7 +228,7 @@ async function CameraBtnClick(bool) {
     cameraBtnTurnedOff.classList.remove("active");
   }
 
-  cameraAudio.src = "public/sounds/discord-video-share.mp3";
+  cameraAudio.src = "/sounds/discord-video-share.mp3";
   cameraAudio.load();
   cameraAudio.play();
 }
@@ -237,8 +237,8 @@ function MicroBtnClick(bool) {
   let microMuteAudio = new Audio();
   let microBtnTurnedOn = document.getElementsByClassName("microBtns")[0];
   let microBtnTurnedOff = document.getElementsByClassName("microBtns")[1];
-  microMuteAudio.src = "public/sounds/discord-mute.mp3";
-  microUnmuteAudio.src = "public/sounds/discord-unmute.mp3";
+  microMuteAudio.src = "/sounds/discord-mute.mp3";
+  microUnmuteAudio.src = "/sounds/discord-unmute.mp3";
   if (bool) {
     microBtnTurnedOn.classList.add("inactive");
     microBtnTurnedOn.classList.remove("active");
@@ -259,7 +259,7 @@ function MicroBtnClick(bool) {
 }
 function LeaveBtnClick() {
   let leaveCallAudio = new Audio();
-  leaveCallAudio.src = "public/sounds/discord-leave.mp3";
+  leaveCallAudio.src = "/sounds/discord-leave.mp3";
   leaveCallAudio.load();
   leaveCallAudio.play();
   cameraBtnTurnedOn.classList.add("inactive");
