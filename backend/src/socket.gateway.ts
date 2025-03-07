@@ -15,7 +15,7 @@ import { uid } from 'uid';
 
 @WebSocketGateway({
   cors: {
-    origin: ['https://videoz-ashy.vercel.app/', 'http://localhost:5173/'],
+    origin: '*',
     credentials: true,
   },
   transports: ['websocket', 'polling'],
